@@ -3,8 +3,10 @@ package main
 import (
 	"fmt"
 	"log/slog"
+	"net/http"
 	"os"
 	"url-shortener/internal/config"
+	"url-shortener/internal/http-server/handlers/url/save"
 	middlewareLogger "url-shortener/internal/http-server/middleware/logger"
 	"url-shortener/internal/lib/logger/sl"
 	"url-shortener/internal/storage/sqllite"
@@ -42,6 +44,23 @@ func main() {
 	router.Use(middleware.Recoverer)
 	router.Use(middleware.URLFormat)
 
+	router.Post("/save", save.New(log, storage))
+
 	// TODO: start server
+	log.Info("server started",slog.String("addr",cfg.HTTPServer.Address))
+	srv := http.Server{
+		Addr:    cfg.HTTPServer.Address,
+		Handler: router,
+		ReadTimeout: cfg.HTTPServer.Timeout,
+		WriteTimeout: cfg.HTTPServer.Timeout,
+		IdleTimeout: cfg.HTTPServer.IdleTimeout,
+	}
+
+	if err := srv.ListenAndServe(); err != nil {
+		log.Error("error start server",sl.Err(err))
+		os.Exit(1)
+	}
+
+	log.Error("server emergency stop")
 }
 
