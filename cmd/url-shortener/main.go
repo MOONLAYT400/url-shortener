@@ -5,8 +5,12 @@ import (
 	"log/slog"
 	"os"
 	"url-shortener/internal/config"
+	middlewareLogger "url-shortener/internal/http-server/middleware/logger"
 	"url-shortener/internal/lib/logger/sl"
 	"url-shortener/internal/storage/sqllite"
+
+	"github.com/go-chi/chi/v5"
+	"github.com/go-chi/chi/v5/middleware"
 )
 
 func main() {
@@ -28,7 +32,15 @@ func main() {
 	}
 
 	_=storage
+
 	// TODO: init router chi, render
+	router := chi.NewRouter()
+
+	// middleware
+	router.Use(middleware.RequestID)
+	router.Use(middlewareLogger.New(log))
+	router.Use(middleware.Recoverer)
+	router.Use(middleware.URLFormat)
 
 	// TODO: start server
 }
