@@ -1,10 +1,12 @@
 package main
 
 import (
+	"context"
 	"fmt"
 	"log/slog"
 	"net/http"
 	"os"
+	ssoGrpc "url-shortener/internal/clients/sso/grpc"
 	"url-shortener/internal/config"
 	remove "url-shortener/internal/http-server/handlers/delete"
 	"url-shortener/internal/http-server/handlers/redirect"
@@ -22,12 +24,20 @@ func main() {
 
 	cfg:=config.MustLoad()
 
+	
 	fmt.Println(cfg)
-
+	
 	// TODO: init logger slog
 	log := config.SetupLogger(cfg.Env)	
 	log.Info("Custom logger enabled in",slog.String("env",cfg.Env) )
 	
+	ssoClient, err := ssoGrpc.New(context.Background(),log,cfg.Clients.SSO.Address,cfg.Clients.SSO.Timeout,cfg.Clients.SSO.RetriesCount)
+	if err != nil {
+		log.Error("error init grpc client",sl.Err(err))
+		os.Exit(1)
+	}
+
+	ssoClient.IsAdmin(context.Background(),1)
 	// TODO: init storage sqllite
 	storage, err := sqllite.New(cfg.StoragePath)
 	if err != nil {

@@ -13,6 +13,8 @@ type Config struct {
 	Env         string `yaml:"env" env-default:"local"`
 	StoragePath string `yaml:"storage_path" env-required:"true"`
 	HTTPServer  HTTPServer `yaml:"http_server"`
+	Clients ClientsConfig `yaml:"clients"`
+	// AppSecret string `yaml:"app_secret" env-required:"true" env:"APP_SECRET"`
 }
 
 type 	HTTPServer  struct {
@@ -21,6 +23,16 @@ type 	HTTPServer  struct {
 		IdleTimeout time.Duration     `yaml:"idle_timeout" env-default:"60s"`
 		User string `yaml:"user" env-required:"true"`
 		Password string `yaml:"password" env-required:"true" env:"USER_PASSWORD"`
+	}
+
+	type CLient struct{
+		Address string `yaml:"address"`
+		Timeout time.Duration `yaml:"timeout"`
+		RetriesCount int `yaml:"retries_count"`
+	}
+
+	type ClientsConfig struct{
+		SSO CLient `yaml:"sso"`
 	}
 
 	func MustLoad() *Config {
